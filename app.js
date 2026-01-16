@@ -588,7 +588,7 @@ async function handleBlastSubmit(e) {
 
     const campaignName = document.getElementById('campaign-name').value;
     const template = document.getElementById('template-select').value;
-    const mediaFile = document.getElementById('media-input').files[0];
+    const mediaFile = document.getElementById('media-input').files[0] ?? "";
     const contactsFile = document.getElementById('contacts-file').files[0];
 
     if (!campaignName || !template || !contactsFile) {
