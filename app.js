@@ -450,10 +450,10 @@ function initDisparoPage() {
     }
 
     // Drag and drop for media
-    mediaUploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        mediaUploadArea.style.borderColor = 'var(--border-hover)';
-    });
+    // mediaUploadArea.addEventListener('dragover', (e) => {
+    //     e.preventDefault();
+    //     mediaUploadArea.style.borderColor = 'var(--border-hover)';
+    // });
 
     mediaUploadArea.addEventListener('dragleave', () => {
         mediaUploadArea.style.borderColor = 'var(--border-color)';
@@ -634,7 +634,7 @@ async function handleBlastSubmit(e) {
 
         // Reset form
         e.target.reset();
-        clearMediaUpload();
+        // clearMediaUpload();
         clearContactsUpload();
 
         // Switch to dashboard
@@ -649,7 +649,7 @@ async function handleBlastSubmit(e) {
 
         const submitBtn = e.target.querySelector('button[type="submit"]');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
+        // submitBtn.innerHTML = originalText;
     }
 }
 
