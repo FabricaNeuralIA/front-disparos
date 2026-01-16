@@ -360,42 +360,42 @@ function initDisparoPage() {
     initCustomSelect();
 
     // Media upload (only if elements exist - they're currently commented out in HTML)
-    const mediaInput = document.getElementById('media-input');
-    const mediaUploadArea = document.getElementById('media-upload-area');
-    if (mediaUploadArea && mediaInput) {
-        try {
-            mediaUploadArea.addEventListener('click', (e) => {
-                // Ignore clicks bubbling from the input itself
-                if (e.target === mediaInput) return;
+    // const mediaInput = document.getElementById('media-input');
+    // const mediaUploadArea = document.getElementById('media-upload-area');
+    // if (mediaUploadArea && mediaInput) {
+    //     try {
+    //         mediaUploadArea.addEventListener('click', (e) => {
+    //             // Ignore clicks bubbling from the input itself
+    //         if (e.target === mediaInput) return;
 
-                try {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!e.target.closest('.remove-media-btn')) {
-                        console.log('Clicking media input');
-                        mediaInput.click();
-                    }
-                } catch (err) {
-                    console.error('Error in mediaUploadArea click handler', err);
-                }
-            });
+    //         try {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             if (!e.target.closest('.remove-media-btn')) {
+    //                 console.log('Clicking media input');
+    //                 mediaInput.click();
+    //             }
+    //         } catch (err) {
+    //             console.error('Error in mediaUploadArea click handler', err);
+    //         }
+    //  });
 
-            mediaInput.addEventListener('change', () => {
-                console.log('Media input changed');
-                handleMediaUpload();
-            });
-        } catch (err) {
-            console.error('Error attaching media upload handlers', err);
-        }
-    }
+    //         mediaInput.addEventListener('change', () => {
+    //             console.log('Media input changed');
+    //             handleMediaUpload();
+    //         });
+    //     } catch (err) {
+    //         console.error('Error attaching media upload handlers', err);
+    //     }
+    // }
 
-    const removeMediaBtn = document.getElementById('remove-media-btn');
-    if (removeMediaBtn) {
-        removeMediaBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            clearMediaUpload();
-        });
-    }
+    // const removeMediaBtn = document.getElementById('remove-media-btn');
+    // if (removeMediaBtn) {
+    //     removeMediaBtn.addEventListener('click', (e) => {
+    //         e.stopPropagation();
+    //         clearMediaUpload();
+    //     });
+    // }
 
     // Contacts upload
     if (contactsUploadArea && contactsInput) {
@@ -471,64 +471,64 @@ function initDisparoPage() {
     });
 }
 
-function handleMediaUpload() {
-    const file = document.getElementById('media-input').files[0];
-    if (!file) return;
+// function handleMediaUpload() {
+//     const file = document.getElementById('media-input').files[0];
+//     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const preview = document.getElementById('media-preview');
-        const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
-        const previewImage = document.getElementById('preview-image');
-        const previewVideo = document.getElementById('preview-video');
+//     const reader = new FileReader();
+//     reader.onload = (e) => {
+//         const preview = document.getElementById('media-preview');
+//         const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
+//         const previewImage = document.getElementById('preview-image');
+//         const previewVideo = document.getElementById('preview-video');
 
-        placeholder.style.display = 'none';
-        preview.style.display = 'block';
+//         placeholder.style.display = 'none';
+//         preview.style.display = 'block';
 
-        if (file.type.startsWith('image/')) {
-            previewImage.src = e.target.result;
-            previewImage.style.display = 'block';
-            previewVideo.style.display = 'none';
+//         if (file.type.startsWith('image/')) {
+//             previewImage.src = e.target.result;
+//             previewImage.style.display = 'block';
+//             previewVideo.style.display = 'none';
 
-            // Update WhatsApp preview
-            const whatsappMedia = document.getElementById('preview-media');
-            const whatsappImage = document.getElementById('preview-media-image');
-            whatsappMedia.style.display = 'block';
-            whatsappImage.src = e.target.result;
-            whatsappImage.style.display = 'block';
-            document.getElementById('preview-media-video').style.display = 'none';
-        } else if (file.type.startsWith('video/')) {
-            previewVideo.src = e.target.result;
-            previewVideo.style.display = 'block';
-            previewImage.style.display = 'none';
+//             // Update WhatsApp preview
+//             const whatsappMedia = document.getElementById('preview-media');
+//             const whatsappImage = document.getElementById('preview-media-image');
+//             whatsappMedia.style.display = 'block';
+//             whatsappImage.src = e.target.result;
+//             whatsappImage.style.display = 'block';
+//             document.getElementById('preview-media-video').style.display = 'none';
+//         } else if (file.type.startsWith('video/')) {
+//             previewVideo.src = e.target.result;
+//             previewVideo.style.display = 'block';
+//             previewImage.style.display = 'none';
 
-            // Update WhatsApp preview
-            const whatsappMedia = document.getElementById('preview-media');
-            const whatsappVideo = document.getElementById('preview-media-video');
-            whatsappMedia.style.display = 'block';
-            whatsappVideo.src = e.target.result;
-            whatsappVideo.style.display = 'block';
-            document.getElementById('preview-media-image').style.display = 'none';
-        }
-    };
-    reader.readAsDataURL(file);
-}
+//             // Update WhatsApp preview
+//             const whatsappMedia = document.getElementById('preview-media');
+//             const whatsappVideo = document.getElementById('preview-media-video');
+//             whatsappMedia.style.display = 'block';
+//             whatsappVideo.src = e.target.result;
+//             whatsappVideo.style.display = 'block';
+//             document.getElementById('preview-media-image').style.display = 'none';
+//         }
+//     };
+//     reader.readAsDataURL(file);
+// }
 
-function clearMediaUpload() {
-    const mediaInput = document.getElementById('media-input');
-    const preview = document.getElementById('media-preview');
-    const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
+// function clearMediaUpload() {
+//     const mediaInput = document.getElementById('media-input');
+//     const preview = document.getElementById('media-preview');
+//     const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
 
-    mediaInput.value = '';
-    preview.style.display = 'none';
-    placeholder.style.display = 'block';
+//     mediaInput.value = '';
+//     preview.style.display = 'none';
+//     placeholder.style.display = 'block';
 
-    document.getElementById('preview-image').src = '';
-    document.getElementById('preview-video').src = '';
+//     document.getElementById('preview-image').src = '';
+//     document.getElementById('preview-video').src = '';
 
-    // Clear WhatsApp preview
-    document.getElementById('preview-media').style.display = 'none';
-}
+//     // Clear WhatsApp preview
+//     document.getElementById('preview-media').style.display = 'none';
+// }
 
 function handleContactsUpload() {
     const file = document.getElementById('contacts-file').files[0];
