@@ -63,6 +63,10 @@ function switchPage(pageName) {
         } else if (pageName === 'disparo') {
             // Reinitialize disparo page when switching to it
             safeInitDisparoPage();
+        } else if (pageName === 'numero') {
+            loadWABAConfig();
+        } else if (pageName === 'perfil') {
+            loadProfileData();
         }
     }
 }
@@ -747,19 +751,12 @@ function initWABAPage() {
 
 async function loadWABAConfig() {
     try {
-        // Get auth token
-        const authToken = localStorage.getItem('authToken');
-
-        if (!authToken) {
-            console.warn('No auth token found');
-            return;
-        }
-
         // Fetch WABA config from webhook
-        const response = await fetch(getApiUrl('/get-waba-config'), {
+        // Use addAuthToBody to include token and userId
+        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GET_WABA_CONFIG), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ authToken: authToken })
+            body: JSON.stringify(addAuthToBody({}))
         });
 
         if (!response.ok) {
