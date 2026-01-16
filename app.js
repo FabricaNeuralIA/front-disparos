@@ -502,6 +502,9 @@ function initWABAPage() {
     loadWABAConfig();
 
     form.addEventListener('submit', handleWABASubmit);
+
+    // Initialize toggle password button
+    initTogglePasswordButton();
 }
 
 async function loadWABAConfig() {
@@ -528,8 +531,8 @@ async function loadWABAConfig() {
             const config = result.config;
 
             // Populate form fields with fetched data
-            if (config.token) {
-                document.getElementById('facebook-token').value = config.token;
+            if (config.tokenMeta) {
+                document.getElementById('facebook-token').value = config.tokenMeta;
             }
             if (config.numero_id) {
                 document.getElementById('phone-number-id').value = config.numero_id;
@@ -606,6 +609,26 @@ async function handleWABASubmit(e) {
         console.error('Error updating WABA config:', error);
         showModal('Erro', 'Erro ao salvar configurações. Por favor, tente novamente.', 'error');
     }
+}
+
+// ===================================
+// Password Toggle
+// ===================================
+function initTogglePasswordButton() {
+    const toggleBtn = document.getElementById('toggle-facebook-token');
+    const passwordInput = document.getElementById('facebook-token');
+
+    if (!toggleBtn || !passwordInput) return;
+
+    toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+        } else {
+            passwordInput.type = 'password';
+        }
+    });
 }
 
 // ===================================

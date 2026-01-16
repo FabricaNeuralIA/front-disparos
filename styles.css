@@ -594,6 +594,40 @@ body::before {
     color: var(--text-primary);
 }
 
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 2.5rem;
+}
+
+.toggle-password-btn {
+    position: absolute;
+    right: 0.875rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition-base);
+    z-index: 1;
+}
+
+.toggle-password-btn:hover {
+    color: var(--text-primary);
+}
+
+.toggle-password-btn:active {
+    transform: scale(0.95);
+}
+
 /* ===================================
    File Upload
    =================================== */
