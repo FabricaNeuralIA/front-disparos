@@ -307,6 +307,12 @@ function initDisparoPage() {
     const contactsUploadArea = document.getElementById('contacts-upload-area');
     const templateSelect = document.getElementById('template-select');
 
+    if (!form || !mediaUploadArea || !contactsUploadArea) {
+        console.warn('Some form elements not found, retrying...');
+        setTimeout(() => initDisparoPage(), 100);
+        return;
+    }
+
     // Load templates on page open
     loadTemplates();
 
@@ -315,6 +321,8 @@ function initDisparoPage() {
 
     // Media upload
     mediaUploadArea.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (!e.target.closest('.remove-media-btn')) {
             mediaInput.click();
         }
@@ -329,6 +337,8 @@ function initDisparoPage() {
 
     // Contacts upload
     contactsUploadArea.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (!e.target.closest('.remove-file-btn')) {
             contactsInput.click();
         }
@@ -645,13 +655,18 @@ async function loadWABAConfig() {
         const response = await fetch(getApiUrl('/get-waba-config'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: authToken })
+            body: JSON.stringify({ authToken: authToken })
         });
+
+        if (!response.ok) {
+            console.error('API error:', response.status, response.statusText);
+            throw new Error(`API returned ${response.status}`);
+        }
 
         const result = await response.json();
 
         // Check if request was successful
-        if (result.success === true && result.config) {
+        if ((result.success === true || result.success === 'true') && result.config) {
             const config = result.config;
 
             // Populate form fields with fetched data
@@ -840,6 +855,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load initial page
     loadDashboard();
+
+    // Add event delegation for file uploads to ensure they work even after page changes
+    document.addEventListener('click', (e) => {
+        const contactsUploadArea = e.target.closest('#contacts-upload-area');
+        if (contactsUploadArea && !e.target.closest('.remove-file-btn')) {
+            const contactsInput = document.getElementById('contacts-file');
+            if (contactsInput) {
+                contactsInput.click();
+            }
+        }
+
+        const mediaUploadArea = e.target.closest('#media-upload-area');
+        if (mediaUploadArea && !e.target.closest('.remove-media-btn')) {
+            const mediaInput = document.getElementById('media-input');
+            if (mediaInput) {
+                mediaInput.click();
+            }
+        }
+    });
 });
 
 // Add spin animation for loading state
