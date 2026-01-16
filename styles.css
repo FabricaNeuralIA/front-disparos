@@ -582,6 +582,26 @@ body::before {
     font-size: 0.875rem;
 }
 
+.form-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: rgba(250, 112, 154, 0.1);
+    border: 1px solid rgba(250, 112, 154, 0.3);
+    border-radius: var(--radius-md);
+    color: #e0e0e0;
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.form-alert svg {
+    flex-shrink: 0;
+    color: #fa709a;
+    margin-top: 2px;
+}
+
 /* ===================================
    Custom Select
    =================================== */
@@ -663,6 +683,7 @@ body::before {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

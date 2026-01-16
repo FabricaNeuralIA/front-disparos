@@ -201,10 +201,12 @@
                                     <div class="custom-select-display" id="template-select-display">
                                         <span class="select-placeholder">Selecione um template</span>
                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                     </div>
-                                    <div class="custom-select-dropdown" id="template-select-dropdown" style="display: none;">
+                                    <div class="custom-select-dropdown" id="template-select-dropdown"
+                                        style="display: none;">
                                         <div class="custom-select-options" id="template-select-options">
                                             <!-- Options will be populated by JavaScript -->
                                         </div>
@@ -308,6 +310,17 @@
 
             <div class="settings-container">
                 <form id="profile-form" class="form-card">
+                    <div class="form-alert">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 2L1 18H19L10 2Z" stroke="currentColor" stroke-width="2"
+                                stroke-linejoin="round" />
+                            <path d="M10 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <circle cx="10" cy="15" r="1.5" fill="currentColor" />
+                        </svg>
+                        <span>Atenção: Os dados alterados aqui serão refletidos em todos os sistemas da Fabrica
+                            Neural.</span>
+                    </div>
+
                     <div class="form-group">
                         <label for="account-name">Nome da Conta</label>
                         <input type="text" id="account-name" placeholder="Digite o nome da conta" required>
@@ -363,9 +376,12 @@
                         <label for="facebook-token">Token do Facebook</label>
                         <div class="password-input-wrapper">
                             <input type="password" id="facebook-token" placeholder="EAAxxxxxxxxxx..." required>
-                            <button type="button" class="toggle-password-btn" id="toggle-facebook-token" title="Mostrar/Ocultar senha">
+                            <button type="button" class="toggle-password-btn" id="toggle-facebook-token"
+                                title="Mostrar/Ocultar senha">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 5C7 5 2.73 8.11 1 12.5C2.73 16.89 7 20 12 20C17 20 21.27 16.89 23 12.5C21.27 8.11 17 5 12 5M12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17M12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="currentColor" />
+                                    <path
+                                        d="M12 5C7 5 2.73 8.11 1 12.5C2.73 16.89 7 20 12 20C17 20 21.27 16.89 23 12.5C21.27 8.11 17 5 12 5M12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17M12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z"
+                                        fill="currentColor" />
                                 </svg>
                             </button>
                         </div>

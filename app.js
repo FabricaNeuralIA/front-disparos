@@ -87,7 +87,6 @@ async function loadDashboard() {
         }
 
         const result = await response.json();
-        console.log(result);
 
         // Handle different possible response structures
         let blasts = [];
@@ -101,7 +100,6 @@ async function loadDashboard() {
         } else if (result.data && Array.isArray(result.data)) {
             blasts = result.data;
         }
-        console.log(blasts.length);
 
         appState.blasts = blasts;
         updateDashboardStats();
@@ -674,15 +672,53 @@ function initProfilePage() {
     form.addEventListener('submit', handleProfileSubmit);
 }
 
-function loadProfileData() {
-    // Load from localStorage or API
-    const savedProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+async function loadProfileData() {
+    try {
+        // Fetch profile from API
+        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.PROFILE), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(addAuthToBody({}))
+        });
 
-    if (savedProfile.name) {
-        document.getElementById('account-name').value = savedProfile.name;
-    }
-    if (savedProfile.email) {
-        document.getElementById('account-email').value = savedProfile.email;
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.warn('Unauthorized, redirecting to login');
+                window.location.href = 'login.html';
+                return;
+            }
+            throw new Error('Falha ao carregar perfil');
+        }
+
+        const result = await response.json();
+
+        if (result.success === true || result.success === 'true') {
+            const profile = result.user || result.profile || {};
+
+            // Save to localStorage
+            localStorage.setItem('profile', JSON.stringify(profile));
+
+            // Update UI
+            if (profile.nome) {
+                document.getElementById('account-name').value = profile.nome;
+            }
+            if (profile.email) {
+                document.getElementById('account-email').value = profile.email;
+            }
+        } else {
+            console.warn('Profile fetch returned success: false', result);
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+
+        // Fallback to localStorage
+        const savedProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+        if (savedProfile.name) {
+            document.getElementById('account-name').value = savedProfile.name;
+        }
+        if (savedProfile.email) {
+            document.getElementById('account-email').value = savedProfile.email;
+        }
     }
 }
 
