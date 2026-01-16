@@ -119,8 +119,8 @@ function updateDashboardStats() {
     const totalContacts = appState.blasts.reduce((sum, b) => sum + b.tamanho_lista, 0);
 
     document.getElementById('total-blasts').textContent = total;
-    document.getElementById('ongoing-blasts').textContent = "andamento";
-    document.getElementById('completed-blasts').textContent = "finalizado";
+    document.getElementById('ongoing-blasts').textContent = andamento;
+    document.getElementById('completed-blasts').textContent = finalizado;
     document.getElementById('total-contacts').textContent = totalContacts.toLocaleString();
 }
 
