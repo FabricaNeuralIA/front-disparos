@@ -114,13 +114,13 @@ async function loadDashboard() {
 
 function updateDashboardStats() {
     const total = appState.blasts.length;
-    const ongoing = appState.blasts.filter(b => b.status === 'Andamento').length;
-    const completed = appState.blasts.filter(b => b.status === 'Finalizado').length;
+    const andamento = appState.blasts.filter(b => b.status === 'Andamento').length;
+    const finalizado = appState.blasts.filter(b => b.status === 'Finalizado').length;
     const totalContacts = appState.blasts.reduce((sum, b) => sum + b.tamanho_lista, 0);
 
     document.getElementById('total-blasts').textContent = total;
-    document.getElementById('ongoing-blasts').textContent = "Andamento";
-    document.getElementById('completed-blasts').textContent = "Finalizado";
+    document.getElementById('ongoing-blasts').textContent = "andamento";
+    document.getElementById('completed-blasts').textContent = "finalizado";
     document.getElementById('total-contacts').textContent = totalContacts.toLocaleString();
 }
 
