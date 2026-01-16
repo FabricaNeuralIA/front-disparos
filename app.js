@@ -181,6 +181,124 @@ async function viewBlastDetails(id) {
 // ===================================
 // Disparo Page
 // ===================================
+async function loadTemplates() {
+    try {
+        const authToken = localStorage.getItem('authToken');
+
+        if (!authToken) {
+            console.warn('No auth token found');
+            return;
+        }
+
+        const response = await fetch(getApiUrl('/get-templates'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ authToken: authToken })
+        });
+
+        const result = await response.json();
+
+        if (result.success === true || result.success === 'true') {
+            const templates = result.templates || [];
+            populateCustomSelect(templates);
+        } else {
+            const message = result.message || 'Falha ao carregar templates';
+            console.warn(message);
+            showModal('Aviso', message, 'warning');
+        }
+    } catch (error) {
+        console.error('Error loading templates:', error);
+        showModal('Erro', 'Erro ao carregar templates. Por favor, tente novamente.', 'error');
+    }
+}
+
+function populateCustomSelect(templates) {
+    const optionsContainer = document.getElementById('template-select-options');
+    const hiddenSelect = document.getElementById('template-select');
+    
+    // Clear existing options
+    optionsContainer.innerHTML = '';
+    while (hiddenSelect.options.length > 0) {
+        hiddenSelect.remove(0);
+    }
+
+    // Add templates
+    templates.forEach(template => {
+        // Add to custom select
+        const option = document.createElement('div');
+        option.className = 'custom-select-option';
+        option.textContent = template;
+        option.setAttribute('data-value', template);
+        option.addEventListener('click', () => selectTemplate(template));
+        optionsContainer.appendChild(option);
+
+        // Add to hidden select
+        const selectOption = document.createElement('option');
+        selectOption.value = template;
+        selectOption.textContent = template;
+        hiddenSelect.appendChild(selectOption);
+    });
+}
+
+function selectTemplate(value) {
+    const display = document.getElementById('template-select-display');
+    const dropdown = document.getElementById('template-select-dropdown');
+    const options = document.querySelectorAll('.custom-select-option');
+    const hiddenSelect = document.getElementById('template-select');
+
+    // Update display (use select-value class instead of select-placeholder for selected items)
+    display.innerHTML = `<span class="select-value">${value}</span><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+    display.classList.remove('active');
+    display.classList.add('selected');
+
+    // Update options
+    options.forEach(opt => {
+        opt.classList.remove('selected');
+        if (opt.getAttribute('data-value') === value) {
+            opt.classList.add('selected');
+        }
+    });
+
+    // Update hidden select
+    hiddenSelect.value = value;
+
+    // Close dropdown
+    dropdown.style.display = 'none';
+}
+
+function initCustomSelect() {
+    const display = document.getElementById('template-select-display');
+    const dropdown = document.getElementById('template-select-dropdown');
+    const wrapper = document.getElementById('template-select-wrapper');
+
+    if (!display) return;
+
+    // Toggle dropdown
+    display.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.style.display !== 'none';
+        dropdown.style.display = isOpen ? 'none' : 'block';
+        display.classList.toggle('active');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            dropdown.style.display = 'none';
+            display.classList.remove('active');
+        }
+    });
+
+    // Close dropdown when pressing Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            dropdown.style.display = 'none';
+            display.classList.remove('active');
+        }
+    });
+}
+
+
 function initDisparoPage() {
     const form = document.getElementById('blast-form');
     const mediaInput = document.getElementById('media-input');
@@ -188,6 +306,12 @@ function initDisparoPage() {
     const contactsInput = document.getElementById('contacts-file');
     const contactsUploadArea = document.getElementById('contacts-upload-area');
     const templateSelect = document.getElementById('template-select');
+
+    // Load templates on page open
+    loadTemplates();
+
+    // Initialize custom select
+    initCustomSelect();
 
     // Media upload
     mediaUploadArea.addEventListener('click', (e) => {
@@ -644,21 +768,37 @@ function showModal(title, message, type = 'success') {
     // Create modal overlay
     const modal = document.createElement('div');
     modal.className = 'custom-modal';
+    
+    let iconSvg = '';
+    if (type === 'success') {
+        iconSvg = `
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="4"/>
+                <path d="M20 32L28 40L44 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+    } else if (type === 'warning') {
+        iconSvg = `
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <path d="M32 4L4 56H60L32 4Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                <path d="M32 24V40" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="32" cy="48" r="2" fill="currentColor"/>
+            </svg>
+        `;
+    } else {
+        iconSvg = `
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="4"/>
+                <path d="M32 20V36M32 44H32.02" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+        `;
+    }
+    
     modal.innerHTML = `
         <div class="modal-overlay"></div>
         <div class="modal-content ${type}">
             <div class="modal-icon">
-                ${type === 'success' ? `
-                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="4"/>
-                        <path d="M20 32L28 40L44 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                ` : `
-                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="4"/>
-                        <path d="M32 20V36M32 44H32.02" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                    </svg>
-                `}
+                ${iconSvg}
             </div>
             <h2 class="modal-title">${title}</h2>
             <p class="modal-message">${message}</p>

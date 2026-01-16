@@ -196,15 +196,25 @@
 
                         <div class="form-group">
                             <label for="template-select">Template do Facebook</label>
-                            <select id="template-select" required>
-                                <option value="">Selecione um template</option>
-                                <option value="template1">Template 1 - Promoção</option>
-                                <option value="template2">Template 2 - Informativo</option>
-                                <option value="template3">Template 3 - Lembrete</option>
-                            </select>
+                            <div class="custom-select-wrapper">
+                                <div class="custom-select" id="template-select-wrapper">
+                                    <div class="custom-select-display" id="template-select-display">
+                                        <span class="select-placeholder">Selecione um template</span>
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-dropdown" id="template-select-dropdown" style="display: none;">
+                                        <div class="custom-select-options" id="template-select-options">
+                                            <!-- Options will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <select id="template-select" style="display: none;" required></select>
+                            </div>
                         </div>
 
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label>Mídia (Imagem ou Vídeo)</label>
                             <div class="file-upload-area" id="media-upload-area">
                                 <input type="file" id="media-input" accept="image/*,video/*" hidden>
@@ -222,7 +232,7 @@
                                     <button type="button" class="remove-media-btn" id="remove-media-btn">×</button>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="form-group">
                             <label for="contacts-file">Lista de Contatos</label>
