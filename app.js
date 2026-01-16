@@ -278,11 +278,16 @@ function initCustomSelect() {
 
     // Toggle dropdown
     display.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const isOpen = dropdown.style.display !== 'none';
-        dropdown.style.display = isOpen ? 'none' : 'block';
-        display.classList.toggle('active');
+        try {
+            console.log('custom select clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = dropdown.style.display !== 'none';
+            dropdown.style.display = isOpen ? 'none' : 'block';
+            display.classList.toggle('active');
+        } catch (err) {
+            console.error('Error in custom select click handler', err);
+        }
     });
 
     // Close dropdown when clicking outside
@@ -295,7 +300,11 @@ function initCustomSelect() {
 
     // Delay adding the outside click listener to avoid immediate closure
     setTimeout(() => {
-        document.addEventListener('click', closeDropdownOutside);
+        try {
+            document.addEventListener('click', closeDropdownOutside);
+        } catch (err) {
+            console.error('Error adding outside click listener for custom select', err);
+        }
     }, 100);
 
     // Close dropdown when pressing Escape
@@ -336,19 +345,27 @@ function initDisparoPage() {
 
     // Media upload
     if (mediaUploadArea && mediaInput) {
-        mediaUploadArea.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!e.target.closest('.remove-media-btn')) {
-                console.log('Clicking media input');
-                mediaInput.click();
-            }
-        });
+        try {
+            mediaUploadArea.addEventListener('click', (e) => {
+                try {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!e.target.closest('.remove-media-btn')) {
+                        console.log('Clicking media input');
+                        mediaInput.click();
+                    }
+                } catch (err) {
+                    console.error('Error in mediaUploadArea click handler', err);
+                }
+            });
 
-        mediaInput.addEventListener('change', () => {
-            console.log('Media input changed');
-            handleMediaUpload();
-        });
+            mediaInput.addEventListener('change', () => {
+                console.log('Media input changed');
+                handleMediaUpload();
+            });
+        } catch (err) {
+            console.error('Error attaching media upload handlers', err);
+        }
     }
 
     const removeMediaBtn = document.getElementById('remove-media-btn');
@@ -361,19 +378,27 @@ function initDisparoPage() {
 
     // Contacts upload
     if (contactsUploadArea && contactsInput) {
-        contactsUploadArea.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!e.target.closest('.remove-file-btn')) {
-                console.log('Clicking contacts input');
-                contactsInput.click();
-            }
-        });
+        try {
+            contactsUploadArea.addEventListener('click', (e) => {
+                try {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!e.target.closest('.remove-file-btn')) {
+                        console.log('Clicking contacts input');
+                        contactsInput.click();
+                    }
+                } catch (err) {
+                    console.error('Error in contactsUploadArea click handler', err);
+                }
+            });
 
-        contactsInput.addEventListener('change', () => {
-            console.log('Contacts input changed');
-            handleContactsUpload();
-        });
+            contactsInput.addEventListener('change', () => {
+                console.log('Contacts input changed');
+                handleContactsUpload();
+            });
+        } catch (err) {
+            console.error('Error attaching contacts upload handlers', err);
+        }
     }
 
     const removeContactsBtn = document.getElementById('remove-contacts-btn');
