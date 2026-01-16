@@ -1,0 +1,690 @@
+// ===================================
+// Authentication Check
+// ===================================
+// Check if user is logged in, redirect to login if not
+const isLoggedIn = localStorage.getItem('isLoggedIn');
+if (!isLoggedIn || isLoggedIn !== 'true') {
+    window.location.href = 'login.html';
+}
+
+// ===================================
+// Application State
+// ===================================
+const appState = {
+    currentPage: 'dashboard',
+    blasts: [],
+    templates: [],
+    user: JSON.parse(localStorage.getItem('userData') || '{}')
+};
+
+// ===================================
+// Navigation
+// ===================================
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageName = item.getAttribute('data-page');
+            switchPage(pageName);
+        });
+    });
+
+    // New blast button
+    const newBlastBtn = document.getElementById('new-blast-btn');
+    if (newBlastBtn) {
+        newBlastBtn.addEventListener('click', () => switchPage('disparo'));
+    }
+}
+
+function switchPage(pageName) {
+    // Update navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-page') === pageName) {
+            item.classList.add('active');
+        }
+    });
+
+    // Update pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    const targetPage = document.getElementById(`${pageName}-page`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        appState.currentPage = pageName;
+
+        // Load page-specific data
+        if (pageName === 'dashboard') {
+            loadDashboard();
+        }
+    }
+}
+
+// ===================================
+// Dashboard
+// ===================================
+function loadDashboard() {
+    // Load mock data for demonstration
+    // In production, this would fetch from the backend
+    const mockBlasts = [
+        {
+            id: 1,
+            campaignName: 'Promoção Black Friday',
+            startTime: '2026-01-15 14:30',
+            contactCount: 1500,
+            status: 'completed'
+        },
+        {
+            id: 2,
+            campaignName: 'Lançamento Produto',
+            startTime: '2026-01-15 16:00',
+            contactCount: 850,
+            status: 'ongoing'
+        },
+        {
+            id: 3,
+            campaignName: 'Newsletter Semanal',
+            startTime: '2026-01-14 10:00',
+            contactCount: 2300,
+            status: 'completed'
+        },
+        {
+            id: 4,
+            campaignName: 'Aviso Importante',
+            startTime: '2026-01-13 09:15',
+            contactCount: 450,
+            status: 'interrupted'
+        }
+    ];
+
+    appState.blasts = mockBlasts;
+    updateDashboardStats();
+    renderBlastsTable();
+}
+
+function updateDashboardStats() {
+    const total = appState.blasts.length;
+    const ongoing = appState.blasts.filter(b => b.status === 'ongoing').length;
+    const completed = appState.blasts.filter(b => b.status === 'completed').length;
+    const totalContacts = appState.blasts.reduce((sum, b) => sum + b.contactCount, 0);
+
+    document.getElementById('total-blasts').textContent = total;
+    document.getElementById('ongoing-blasts').textContent = ongoing;
+    document.getElementById('completed-blasts').textContent = completed;
+    document.getElementById('total-contacts').textContent = totalContacts.toLocaleString();
+}
+
+function renderBlastsTable() {
+    const tbody = document.getElementById('blasts-table-body');
+
+    if (appState.blasts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    Nenhum disparo realizado ainda
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = appState.blasts.map(blast => `
+        <tr>
+            <td><strong>${blast.campaignName}</strong></td>
+            <td>${blast.startTime}</td>
+            <td>${blast.contactCount.toLocaleString()}</td>
+            <td>
+                <span class="status-badge status-${blast.status}">
+                    ${getStatusText(blast.status)}
+                </span>
+            </td>
+            <td>
+                <button class="action-btn" onclick="viewBlastDetails(${blast.id})" title="Ver detalhes">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 3C4.5 3 1.73 5.11 1 8C1.73 10.89 4.5 13 8 13C11.5 13 14.27 10.89 15 8C14.27 5.11 11.5 3 8 3Z" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getStatusText(status) {
+    const statusMap = {
+        'ongoing': 'Em Andamento',
+        'completed': 'Concluído',
+        'interrupted': 'Interrompida'
+    };
+    return statusMap[status] || status;
+}
+
+async function viewBlastDetails(id) {
+    const blast = appState.blasts.find(b => b.id === id);
+    if (blast) {
+        // For production, fetch from backend with ID in body
+        // const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.GET_BLAST), {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ id: id })
+        // });
+        // const blastDetails = await response.json();
+
+        alert(`Detalhes do disparo:\n\nCampanha: ${blast.campaignName}\nData/Hora: ${blast.startTime}\nContatos: ${blast.contactCount}\nStatus: ${getStatusText(blast.status)}`);
+    }
+}
+
+// ===================================
+// Disparo Page
+// ===================================
+function initDisparoPage() {
+    const form = document.getElementById('blast-form');
+    const mediaInput = document.getElementById('media-input');
+    const mediaUploadArea = document.getElementById('media-upload-area');
+    const contactsInput = document.getElementById('contacts-file');
+    const contactsUploadArea = document.getElementById('contacts-upload-area');
+    const templateSelect = document.getElementById('template-select');
+
+    // Media upload
+    mediaUploadArea.addEventListener('click', (e) => {
+        if (!e.target.closest('.remove-media-btn')) {
+            mediaInput.click();
+        }
+    });
+
+    mediaInput.addEventListener('change', handleMediaUpload);
+
+    document.getElementById('remove-media-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearMediaUpload();
+    });
+
+    // Contacts upload
+    contactsUploadArea.addEventListener('click', (e) => {
+        if (!e.target.closest('.remove-file-btn')) {
+            contactsInput.click();
+        }
+    });
+
+    contactsInput.addEventListener('change', handleContactsUpload);
+
+    document.getElementById('remove-contacts-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearContactsUpload();
+    });
+
+    // Template selection
+    templateSelect.addEventListener('change', updatePreview);
+
+    // Form submission
+    form.addEventListener('submit', handleBlastSubmit);
+
+    // Drag and drop for media
+    mediaUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        mediaUploadArea.style.borderColor = 'var(--border-hover)';
+    });
+
+    mediaUploadArea.addEventListener('dragleave', () => {
+        mediaUploadArea.style.borderColor = 'var(--border-color)';
+    });
+
+    mediaUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        mediaUploadArea.style.borderColor = 'var(--border-color)';
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            mediaInput.files = files;
+            handleMediaUpload();
+        }
+    });
+}
+
+function handleMediaUpload() {
+    const file = document.getElementById('media-input').files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById('media-preview');
+        const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
+        const previewImage = document.getElementById('preview-image');
+        const previewVideo = document.getElementById('preview-video');
+
+        placeholder.style.display = 'none';
+        preview.style.display = 'block';
+
+        if (file.type.startsWith('image/')) {
+            previewImage.src = e.target.result;
+            previewImage.style.display = 'block';
+            previewVideo.style.display = 'none';
+
+            // Update WhatsApp preview
+            const whatsappMedia = document.getElementById('preview-media');
+            const whatsappImage = document.getElementById('preview-media-image');
+            whatsappMedia.style.display = 'block';
+            whatsappImage.src = e.target.result;
+            whatsappImage.style.display = 'block';
+            document.getElementById('preview-media-video').style.display = 'none';
+        } else if (file.type.startsWith('video/')) {
+            previewVideo.src = e.target.result;
+            previewVideo.style.display = 'block';
+            previewImage.style.display = 'none';
+
+            // Update WhatsApp preview
+            const whatsappMedia = document.getElementById('preview-media');
+            const whatsappVideo = document.getElementById('preview-media-video');
+            whatsappMedia.style.display = 'block';
+            whatsappVideo.src = e.target.result;
+            whatsappVideo.style.display = 'block';
+            document.getElementById('preview-media-image').style.display = 'none';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearMediaUpload() {
+    const mediaInput = document.getElementById('media-input');
+    const preview = document.getElementById('media-preview');
+    const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
+
+    mediaInput.value = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'block';
+
+    document.getElementById('preview-image').src = '';
+    document.getElementById('preview-video').src = '';
+
+    // Clear WhatsApp preview
+    document.getElementById('preview-media').style.display = 'none';
+}
+
+function handleContactsUpload() {
+    const file = document.getElementById('contacts-file').files[0];
+    if (!file) return;
+
+    const selected = document.getElementById('contacts-selected');
+    const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
+    const filename = document.getElementById('contacts-filename');
+
+    placeholder.style.display = 'none';
+    selected.style.display = 'flex';
+    filename.textContent = file.name;
+}
+
+function clearContactsUpload() {
+    const contactsInput = document.getElementById('contacts-file');
+    const selected = document.getElementById('contacts-selected');
+    const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
+
+    contactsInput.value = '';
+    selected.style.display = 'none';
+    placeholder.style.display = 'block';
+}
+
+function updatePreview() {
+    const templateSelect = document.getElementById('template-select');
+    const previewText = document.getElementById('preview-text');
+
+    const templateMessages = {
+        'template1': 'Olá! 🎉 Não perca nossa promoção especial! Aproveite descontos de até 50% em produtos selecionados.',
+        'template2': 'Informamos que nosso horário de atendimento foi atualizado. Confira os novos horários em nosso site.',
+        'template3': 'Lembrete: Você tem um compromisso agendado para amanhã às 14h. Confirme sua presença!'
+    };
+
+    const selectedTemplate = templateSelect.value;
+    if (selectedTemplate && templateMessages[selectedTemplate]) {
+        previewText.textContent = templateMessages[selectedTemplate];
+    } else {
+        previewText.textContent = 'Sua mensagem aparecerá aqui...';
+    }
+}
+
+async function handleBlastSubmit(e) {
+    e.preventDefault();
+
+    const campaignName = document.getElementById('campaign-name').value;
+    const template = document.getElementById('template-select').value;
+    const mediaFile = document.getElementById('media-input').files[0];
+    const contactsFile = document.getElementById('contacts-file').files[0];
+
+    if (!campaignName || !template || !contactsFile) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+    }
+
+    // Create FormData for file upload
+    // Add token and userId for authentication
+    const auth = getAuthCredentials();
+    const formData = new FormData();
+    formData.append('campaignName', campaignName);
+    formData.append('template', template);
+    formData.append('token', auth.token);
+    formData.append('userId', auth.userId);
+    if (mediaFile) {
+        formData.append('media', mediaFile);
+    }
+    formData.append('contacts', contactsFile);
+
+    try {
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation: spin 1s linear infinite;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="50" stroke-dashoffset="25"/></svg> Enviando...';
+
+        // Make API call - all data sent in body
+        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CREATE_BLAST), {
+            method: 'POST',
+            body: formData
+            // Note: Don't set Content-Type header for FormData, browser will set it automatically
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao criar disparo');
+        }
+
+        const result = await response.json();
+
+        // Success
+        alert('Disparo iniciado com sucesso!');
+
+        // Reset form
+        e.target.reset();
+        clearMediaUpload();
+        clearContactsUpload();
+
+        // Switch to dashboard
+        switchPage('dashboard');
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+
+    } catch (error) {
+        console.error('Error creating blast:', error);
+        alert('Erro ao iniciar disparo. Por favor, tente novamente.');
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// ===================================
+// Profile Page
+// ===================================
+function initProfilePage() {
+    const form = document.getElementById('profile-form');
+
+    // Load existing profile data
+    loadProfileData();
+
+    form.addEventListener('submit', handleProfileSubmit);
+}
+
+function loadProfileData() {
+    // Load from localStorage or API
+    const savedProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+
+    if (savedProfile.name) {
+        document.getElementById('account-name').value = savedProfile.name;
+    }
+    if (savedProfile.email) {
+        document.getElementById('account-email').value = savedProfile.email;
+    }
+}
+
+async function handleProfileSubmit(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('account-name').value;
+    const email = document.getElementById('account-email').value;
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    // Validate password change if provided
+    if (newPassword || confirmPassword) {
+        if (!currentPassword) {
+            alert('Por favor, informe sua senha atual.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            alert('As senhas não coincidem.');
+            return;
+        }
+        if (newPassword.length < 6) {
+            alert('A nova senha deve ter pelo menos 6 caracteres.');
+            return;
+        }
+    }
+
+    const profileData = { name, email };
+
+    try {
+        // Save to localStorage (in production, send to backend)
+        localStorage.setItem('profile', JSON.stringify(profileData));
+
+        // If password change requested, handle separately
+        // All data sent in body for webhook compatibility
+        if (newPassword) {
+            // await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CHANGE_PASSWORD), {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ currentPassword, newPassword })
+            // });
+
+            // Clear password fields
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+        }
+
+        alert('Perfil atualizado com sucesso!');
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Erro ao atualizar perfil. Por favor, tente novamente.');
+    }
+}
+
+// ===================================
+// WABA Configuration Page
+// ===================================
+function initWABAPage() {
+    const form = document.getElementById('waba-form');
+
+    // Load existing configuration
+    loadWABAConfig();
+
+    form.addEventListener('submit', handleWABASubmit);
+}
+
+async function loadWABAConfig() {
+    try {
+        // Get auth token
+        const authToken = localStorage.getItem('authToken');
+
+        if (!authToken) {
+            console.warn('No auth token found');
+            return;
+        }
+
+        // Fetch WABA config from webhook
+        const response = await fetch(getApiUrl('/get-waba-config'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: authToken })
+        });
+
+        const result = await response.json();
+
+        // Check if request was successful
+        if (result.success === true && result.config) {
+            const config = result.config;
+
+            // Populate form fields with fetched data
+            if (config.token) {
+                document.getElementById('facebook-token').value = config.token;
+            }
+            if (config.numero_id) {
+                document.getElementById('phone-number-id').value = config.numero_id;
+            }
+            if (config.waba_id) {
+                document.getElementById('waba-id').value = config.waba_id;
+            }
+
+            // Also save to localStorage for offline access
+            localStorage.setItem('wabaConfig', JSON.stringify(config));
+        } else {
+            console.log('No WABA config found or error fetching config');
+            // Try to load from localStorage as fallback
+            const savedConfig = JSON.parse(localStorage.getItem('wabaConfig') || '{}');
+
+            if (savedConfig.token) {
+                document.getElementById('facebook-token').value = savedConfig.token;
+            }
+            if (savedConfig.phoneNumberId) {
+                document.getElementById('phone-number-id').value = savedConfig.phoneNumberId;
+            }
+            if (savedConfig.wabaId) {
+                document.getElementById('waba-id').value = savedConfig.wabaId;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading WABA config:', error);
+        // Fallback to localStorage
+        const savedConfig = JSON.parse(localStorage.getItem('wabaConfig') || '{}');
+
+        if (savedConfig.token) {
+            document.getElementById('facebook-token').value = savedConfig.token;
+        }
+        if (savedConfig.phoneNumberId) {
+            document.getElementById('phone-number-id').value = savedConfig.phoneNumberId;
+        }
+        if (savedConfig.wabaId) {
+            document.getElementById('waba-id').value = savedConfig.wabaId;
+        }
+    }
+}
+
+async function handleWABASubmit(e) {
+    e.preventDefault();
+
+    const tokenMeta = document.getElementById('facebook-token').value;
+    const phoneNumberId = document.getElementById('phone-number-id').value;
+    const wabaId = document.getElementById('waba-id').value;
+    const token = localStorage.getItem('authToken');
+
+    const config = { token, tokenMeta, phoneNumberId, wabaId };
+
+    try {
+        // Save to localStorage
+        localStorage.setItem('wabaConfig', JSON.stringify(config));
+
+        // Send to webhook - token and userId automatically added by addAuthToBody
+        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.UPDATE_WABA), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(addAuthToBody(config))
+        });
+
+        const result = await response.json();
+
+        // Check success field in response
+        if (result.success === true) {
+            showModal('Sucesso!', 'Configurações salvas com sucesso!', 'success');
+        } else {
+            showModal('Erro', 'Falha ao salvar configurações. Por favor, tente novamente.', 'error');
+        }
+
+    } catch (error) {
+        console.error('Error updating WABA config:', error);
+        showModal('Erro', 'Erro ao salvar configurações. Por favor, tente novamente.', 'error');
+    }
+}
+
+// ===================================
+// Modal for Success/Error Messages
+// ===================================
+function showModal(title, message, type = 'success') {
+    // Remove existing modal if any
+    const existingModal = document.querySelector('.custom-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal';
+    modal.innerHTML = `
+        <div class="modal-overlay"></div>
+        <div class="modal-content ${type}">
+            <div class="modal-icon">
+                ${type === 'success' ? `
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="4"/>
+                        <path d="M20 32L28 40L44 24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                ` : `
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="4"/>
+                        <path d="M32 20V36M32 44H32.02" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                `}
+            </div>
+            <h2 class="modal-title">${title}</h2>
+            <p class="modal-message">${message}</p>
+            <button class="modal-btn" onclick="closeModal()">OK</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Trigger animation
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+
+    // Auto close after 5 seconds
+    setTimeout(() => {
+        closeModal();
+    }, 5000);
+}
+
+function closeModal() {
+    const modal = document.querySelector('.custom-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// ===================================
+// Initialization
+// ===================================
+document.addEventListener('DOMContentLoaded', () => {
+    initNavigation();
+    initDisparoPage();
+    initProfilePage();
+    initWABAPage();
+
+    // Load initial page
+    loadDashboard();
+});
+
+// Add spin animation for loading state
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
