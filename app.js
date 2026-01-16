@@ -365,6 +365,9 @@ function initDisparoPage() {
     if (mediaUploadArea && mediaInput) {
         try {
             mediaUploadArea.addEventListener('click', (e) => {
+                // Ignore clicks bubbling from the input itself
+                if (e.target === mediaInput) return;
+
                 try {
                     e.preventDefault();
                     e.stopPropagation();
@@ -402,6 +405,9 @@ function initDisparoPage() {
 
             try {
                 contactsUploadArea.addEventListener('click', (e) => {
+                    // Ignore clicks bubbling from the input itself to prevent infinite loops
+                    if (e.target === contactsInput) return;
+
                     try {
                         e.preventDefault();
                         e.stopPropagation();
