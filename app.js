@@ -74,43 +74,42 @@ function switchPage(pageName) {
 // ===================================
 // Dashboard
 // ===================================
-function loadDashboard() {
-    // Load mock data for demonstration
-    // In production, this would fetch from the backend
-    const mockBlasts = [
-        {
-            id: 1,
-            campaignName: 'Promoção Black Friday',
-            startTime: '2026-01-15 14:30',
-            contactCount: 1500,
-            status: 'completed'
-        },
-        {
-            id: 2,
-            campaignName: 'Lançamento Produto',
-            startTime: '2026-01-15 16:00',
-            contactCount: 850,
-            status: 'ongoing'
-        },
-        {
-            id: 3,
-            campaignName: 'Newsletter Semanal',
-            startTime: '2026-01-14 10:00',
-            contactCount: 2300,
-            status: 'completed'
-        },
-        {
-            id: 4,
-            campaignName: 'Aviso Importante',
-            startTime: '2026-01-13 09:15',
-            contactCount: 450,
-            status: 'interrupted'
-        }
-    ];
+async function loadDashboard() {
+    try {
+        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LIST_BLASTS), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(addAuthToBody({}))
+        });
 
-    appState.blasts = mockBlasts;
-    updateDashboardStats();
-    renderBlastsTable();
+        if (!response.ok) {
+            throw new Error('Falha ao carregar disparos');
+        }
+
+        const result = await response.json();
+
+        // Handle different possible response structures
+        let blasts = [];
+        if (Array.isArray(result)) {
+            blasts = result;
+        } else if (result.blasts && Array.isArray(result.blasts)) {
+            blasts = result.blasts;
+        } else if (result.data && Array.isArray(result.data)) {
+            blasts = result.data;
+        }
+
+        appState.blasts = blasts;
+        updateDashboardStats();
+        renderBlastsTable();
+
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+
+        // On error, show empty state
+        appState.blasts = [];
+        updateDashboardStats();
+        renderBlastsTable();
+    }
 }
 
 function updateDashboardStats() {

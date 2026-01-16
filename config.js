@@ -8,7 +8,7 @@ const API_CONFIG = {
         LOGOUT: '/auth-logout',
 
         // Blast endpoints
-        BLASTS: '/blasts',
+        LIST_BLASTS: '/listar-disparos',
         CREATE_BLAST: '/blasts-create',
         GET_BLAST: '/blasts-get', // Send blast ID in request body
 
