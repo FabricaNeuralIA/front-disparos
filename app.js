@@ -87,16 +87,21 @@ async function loadDashboard() {
         }
 
         const result = await response.json();
+        console.log(result);
 
         // Handle different possible response structures
         let blasts = [];
         if (Array.isArray(result)) {
             blasts = result;
+        } else if (result.result && Array.isArray(result.result)) {
+            // Correct property from API based on screenshot
+            blasts = result.result;
         } else if (result.blasts && Array.isArray(result.blasts)) {
             blasts = result.blasts;
         } else if (result.data && Array.isArray(result.data)) {
             blasts = result.data;
         }
+        console.log(blasts.length);
 
         appState.blasts = blasts;
         updateDashboardStats();
@@ -141,7 +146,7 @@ function renderBlastsTable() {
     tbody.innerHTML = appState.blasts.map(blast => `
         <tr>
             <td><strong>${blast.nome_campanha}</strong></td>
-            <td>${blast.data_inicio}</td>
+            <td>${blast.hora_inicio}</td>
             <td>${blast.tamanho_lista.toLocaleString()}</td>
             <td>
                 <span class="status-badge status-${blast.status}">
@@ -180,7 +185,7 @@ async function viewBlastDetails(id) {
         // });
         // const blastDetails = await response.json();
 
-        alert(`Detalhes do disparo:\n\nCampanha: ${blast.nome_campanha}\nData/Hora: ${blast.data_inicio}\nContatos: ${blast.tamanho_lista}\nStatus: ${getStatusText(blast.status)}`);
+        alert(`Detalhes do disparo:\n\nCampanha: ${blast.nome_campanha}\nData/Hora: ${blast.hora_inicio}\nContatos: ${blast.tamanho_lista}\nStatus: ${getStatusText(blast.status)}`);
     }
 }
 
@@ -458,201 +463,202 @@ function initDisparoPage() {
     //     mediaUploadArea.style.borderColor = 'var(--border-hover)';
     // });
 
-    mediaUploadArea.addEventListener('dragleave', () => {
-        mediaUploadArea.style.borderColor = 'var(--border-color)';
-    });
+    //     mediaUploadArea.addEventListener('dragleave', () => {
+    //         mediaUploadArea.style.borderColor = 'var(--border-color)';
+    //     });
 
-    mediaUploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        mediaUploadArea.style.borderColor = 'var(--border-color)';
+    //     mediaUploadArea.addEventListener('drop', (e) => {
+    //         e.preventDefault();
+    //         mediaUploadArea.style.borderColor = 'var(--border-color)';
 
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            mediaInput.files = files;
-            handleMediaUpload();
-        }
-    });
-}
-
-// function handleMediaUpload() {
-//     const file = document.getElementById('media-input').files[0];
-//     if (!file) return;
-
-//     const reader = new FileReader();
-//     reader.onload = (e) => {
-//         const preview = document.getElementById('media-preview');
-//         const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
-//         const previewImage = document.getElementById('preview-image');
-//         const previewVideo = document.getElementById('preview-video');
-
-//         placeholder.style.display = 'none';
-//         preview.style.display = 'block';
-
-//         if (file.type.startsWith('image/')) {
-//             previewImage.src = e.target.result;
-//             previewImage.style.display = 'block';
-//             previewVideo.style.display = 'none';
-
-//             // Update WhatsApp preview
-//             const whatsappMedia = document.getElementById('preview-media');
-//             const whatsappImage = document.getElementById('preview-media-image');
-//             whatsappMedia.style.display = 'block';
-//             whatsappImage.src = e.target.result;
-//             whatsappImage.style.display = 'block';
-//             document.getElementById('preview-media-video').style.display = 'none';
-//         } else if (file.type.startsWith('video/')) {
-//             previewVideo.src = e.target.result;
-//             previewVideo.style.display = 'block';
-//             previewImage.style.display = 'none';
-
-//             // Update WhatsApp preview
-//             const whatsappMedia = document.getElementById('preview-media');
-//             const whatsappVideo = document.getElementById('preview-media-video');
-//             whatsappMedia.style.display = 'block';
-//             whatsappVideo.src = e.target.result;
-//             whatsappVideo.style.display = 'block';
-//             document.getElementById('preview-media-image').style.display = 'none';
-//         }
-//     };
-//     reader.readAsDataURL(file);
-// }
-
-// function clearMediaUpload() {
-//     const mediaInput = document.getElementById('media-input');
-//     const preview = document.getElementById('media-preview');
-//     const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
-
-//     mediaInput.value = '';
-//     preview.style.display = 'none';
-//     placeholder.style.display = 'block';
-
-//     document.getElementById('preview-image').src = '';
-//     document.getElementById('preview-video').src = '';
-
-//     // Clear WhatsApp preview
-//     document.getElementById('preview-media').style.display = 'none';
-// }
-
-function handleContactsUpload() {
-    const file = document.getElementById('contacts-file').files[0];
-    if (!file) {
-        console.warn('No file selected');
-        return;
-    }
-
-    console.log('File selected:', file.name);
-
-    const selected = document.getElementById('contacts-selected');
-    const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
-    const filename = document.getElementById('contacts-filename');
-
-    if (!selected || !placeholder || !filename) {
-        console.error('Could not find required elements for contacts upload');
-        return;
-    }
-
-    placeholder.style.display = 'none';
-    selected.style.display = 'flex';
-    filename.textContent = file.name;
-
-    console.log('File display updated:', file.name);
-}
-
-function clearContactsUpload() {
-    const contactsInput = document.getElementById('contacts-file');
-    const selected = document.getElementById('contacts-selected');
-    const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
-
-    contactsInput.value = '';
-    selected.style.display = 'none';
-    placeholder.style.display = 'block';
-}
-
-function updatePreview() {
-    const templateSelect = document.getElementById('template-select');
-    const previewText = document.getElementById('preview-text');
-
-    const templateMessages = {
-        'template1': 'Olá! 🎉 Não perca nossa promoção especial! Aproveite descontos de até 50% em produtos selecionados.',
-        'template2': 'Informamos que nosso horário de atendimento foi atualizado. Confira os novos horários em nosso site.',
-        'template3': 'Lembrete: Você tem um compromisso agendado para amanhã às 14h. Confirme sua presença!'
-    };
-
-    const selectedTemplate = templateSelect.value;
-    if (selectedTemplate && templateMessages[selectedTemplate]) {
-        previewText.textContent = templateMessages[selectedTemplate];
-    } else {
-        previewText.textContent = 'Sua mensagem aparecerá aqui...';
-    }
-}
-
-async function handleBlastSubmit(e) {
-    e.preventDefault();
-
-    const campaignName = document.getElementById('campaign-name').value;
-    const template = document.getElementById('template-select').value;
-    // const mediaFile = document.getElementById('media-input').files[0] ?? "";
-    const contactsFile = document.getElementById('contacts-file').files[0];
-
-    if (!campaignName || !template || !contactsFile) {
-        alert('Por favor, preencha todos os campos obrigatórios.');
-        return;
-    }
-
-    // Create FormData for file upload
-    // Add token and userId for authentication
-    const auth = getAuthCredentials();
-    const formData = new FormData();
-    formData.append('campaignName', campaignName);
-    formData.append('template', template);
-    formData.append('token', auth.token);
-    formData.append('userId', auth.userId);
-    // if (mediaFile) {
-    //     formData.append('media', mediaFile);
+    //         const files = e.dataTransfer.files;
+    //         if (files.length > 0) {
+    //             mediaInput.files = files;
+    //             handleMediaUpload();
+    //         }
+    //     });
     // }
-    formData.append('contacts', contactsFile);
 
-    try {
-        // Show loading state
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation: spin 1s linear infinite;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="50" stroke-dashoffset="25"/></svg> Enviando...';
+    // function handleMediaUpload() {
+    //     const file = document.getElementById('media-input').files[0];
+    //     if (!file) return;
 
-        // Make API call - all data sent in body
-        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CREATE_BLAST), {
-            method: 'POST',
-            body: formData
-            // Note: Don't set Content-Type header for FormData, browser will set it automatically
-        });
+    //     const reader = new FileReader();
+    //     reader.onload = (e) => {
+    //         const preview = document.getElementById('media-preview');
+    //         const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
+    //         const previewImage = document.getElementById('preview-image');
+    //         const previewVideo = document.getElementById('preview-video');
 
-        if (!response.ok) {
-            throw new Error('Falha ao criar disparo');
+    //         placeholder.style.display = 'none';
+    //         preview.style.display = 'block';
+
+    //         if (file.type.startsWith('image/')) {
+    //             previewImage.src = e.target.result;
+    //             previewImage.style.display = 'block';
+    //             previewVideo.style.display = 'none';
+
+    //             // Update WhatsApp preview
+    //             const whatsappMedia = document.getElementById('preview-media');
+    //             const whatsappImage = document.getElementById('preview-media-image');
+    //             whatsappMedia.style.display = 'block';
+    //             whatsappImage.src = e.target.result;
+    //             whatsappImage.style.display = 'block';
+    //             document.getElementById('preview-media-video').style.display = 'none';
+    //         } else if (file.type.startsWith('video/')) {
+    //             previewVideo.src = e.target.result;
+    //             previewVideo.style.display = 'block';
+    //             previewImage.style.display = 'none';
+
+    //             // Update WhatsApp preview
+    //             const whatsappMedia = document.getElementById('preview-media');
+    //             const whatsappVideo = document.getElementById('preview-media-video');
+    //             whatsappMedia.style.display = 'block';
+    //             whatsappVideo.src = e.target.result;
+    //             whatsappVideo.style.display = 'block';
+    //             document.getElementById('preview-media-image').style.display = 'none';
+    //         }
+    //     };
+    //     reader.readAsDataURL(file);
+    // }
+
+    // function clearMediaUpload() {
+    //     const mediaInput = document.getElementById('media-input');
+    //     const preview = document.getElementById('media-preview');
+    //     const placeholder = document.querySelector('#media-upload-area .upload-placeholder');
+
+    //     mediaInput.value = '';
+    //     preview.style.display = 'none';
+    //     placeholder.style.display = 'block';
+
+    //     document.getElementById('preview-image').src = '';
+    //     document.getElementById('preview-video').src = '';
+
+    //     // Clear WhatsApp preview
+    //     document.getElementById('preview-media').style.display = 'none';
+    // }
+
+    function handleContactsUpload() {
+        const file = document.getElementById('contacts-file').files[0];
+        if (!file) {
+            console.warn('No file selected');
+            return;
         }
 
-        const result = await response.json();
+        console.log('File selected:', file.name);
 
-        // Success
-        alert('Disparo iniciado com sucesso!');
+        const selected = document.getElementById('contacts-selected');
+        const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
+        const filename = document.getElementById('contacts-filename');
 
-        // Reset form
-        e.target.reset();
-        // clearMediaUpload();
-        clearContactsUpload();
+        if (!selected || !placeholder || !filename) {
+            console.error('Could not find required elements for contacts upload');
+            return;
+        }
 
-        // Switch to dashboard
-        switchPage('dashboard');
+        placeholder.style.display = 'none';
+        selected.style.display = 'flex';
+        filename.textContent = file.name;
 
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
+        console.log('File display updated:', file.name);
+    }
 
-    } catch (error) {
-        console.error('Error creating blast:', error);
-        alert('Erro ao iniciar disparo. Por favor, tente novamente.');
+    function clearContactsUpload() {
+        const contactsInput = document.getElementById('contacts-file');
+        const selected = document.getElementById('contacts-selected');
+        const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
 
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = false;
-        // submitBtn.innerHTML = originalText;
+        contactsInput.value = '';
+        selected.style.display = 'none';
+        placeholder.style.display = 'block';
+    }
+
+    function updatePreview() {
+        const templateSelect = document.getElementById('template-select');
+        const previewText = document.getElementById('preview-text');
+
+        const templateMessages = {
+            'template1': 'Olá! 🎉 Não perca nossa promoção especial! Aproveite descontos de até 50% em produtos selecionados.',
+            'template2': 'Informamos que nosso horário de atendimento foi atualizado. Confira os novos horários em nosso site.',
+            'template3': 'Lembrete: Você tem um compromisso agendado para amanhã às 14h. Confirme sua presença!'
+        };
+
+        const selectedTemplate = templateSelect.value;
+        if (selectedTemplate && templateMessages[selectedTemplate]) {
+            previewText.textContent = templateMessages[selectedTemplate];
+        } else {
+            previewText.textContent = 'Sua mensagem aparecerá aqui...';
+        }
+    }
+
+    async function handleBlastSubmit(e) {
+        e.preventDefault();
+
+        const campaignName = document.getElementById('campaign-name').value;
+        const template = document.getElementById('template-select').value;
+        // const mediaFile = document.getElementById('media-input').files[0] ?? "";
+        const contactsFile = document.getElementById('contacts-file').files[0];
+
+        if (!campaignName || !template || !contactsFile) {
+            alert('Por favor, preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        // Create FormData for file upload
+        // Add token and userId for authentication
+        const auth = getAuthCredentials();
+        const formData = new FormData();
+        formData.append('campaignName', campaignName);
+        formData.append('template', template);
+        formData.append('token', auth.token);
+        formData.append('userId', auth.userId);
+        // if (mediaFile) {
+        //     formData.append('media', mediaFile);
+        // }
+        formData.append('contacts', contactsFile);
+
+        try {
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation: spin 1s linear infinite;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="50" stroke-dashoffset="25"/></svg> Enviando...';
+
+            // Make API call - all data sent in body
+            const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.CREATE_BLAST), {
+                method: 'POST',
+                body: formData
+                // Note: Don't set Content-Type header for FormData, browser will set it automatically
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao criar disparo');
+            }
+
+            const result = await response.json();
+
+            // Success
+            alert('Disparo iniciado com sucesso!');
+
+            // Reset form
+            e.target.reset();
+            // clearMediaUpload();
+            clearContactsUpload();
+
+            // Switch to dashboard
+            switchPage('dashboard');
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+        } catch (error) {
+            console.error('Error creating blast:', error);
+            alert('Erro ao iniciar disparo. Por favor, tente novamente.');
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = false;
+            // submitBtn.innerHTML = originalText;
+        }
     }
 }
 
