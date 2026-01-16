@@ -60,6 +60,9 @@ function switchPage(pageName) {
         // Load page-specific data
         if (pageName === 'dashboard') {
             loadDashboard();
+        } else if (pageName === 'disparo') {
+            // Reinitialize disparo page when switching to it
+            safeInitDisparoPage();
         }
     }
 }
@@ -271,10 +274,11 @@ function initCustomSelect() {
     const dropdown = document.getElementById('template-select-dropdown');
     const wrapper = document.getElementById('template-select-wrapper');
 
-    if (!display) return;
+    if (!display || !dropdown || !wrapper) return;
 
     // Toggle dropdown
     display.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         const isOpen = dropdown.style.display !== 'none';
         dropdown.style.display = isOpen ? 'none' : 'block';
@@ -282,12 +286,17 @@ function initCustomSelect() {
     });
 
     // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
+    const closeDropdownOutside = (e) => {
         if (!wrapper.contains(e.target)) {
             dropdown.style.display = 'none';
             display.classList.remove('active');
         }
-    });
+    };
+
+    // Delay adding the outside click listener to avoid immediate closure
+    setTimeout(() => {
+        document.addEventListener('click', closeDropdownOutside);
+    }, 100);
 
     // Close dropdown when pressing Escape
     document.addEventListener('keydown', (e) => {
@@ -308,10 +317,16 @@ function initDisparoPage() {
     const templateSelect = document.getElementById('template-select');
 
     if (!form || !mediaUploadArea || !contactsUploadArea) {
-        console.warn('Some form elements not found, retrying...');
+        console.warn('Some form elements not found, retrying...', {
+            form: !!form,
+            mediaUploadArea: !!mediaUploadArea,
+            contactsUploadArea: !!contactsUploadArea
+        });
         setTimeout(() => initDisparoPage(), 100);
         return;
     }
+
+    console.log('Initializing disparo page');
 
     // Load templates on page open
     loadTemplates();
@@ -320,39 +335,59 @@ function initDisparoPage() {
     initCustomSelect();
 
     // Media upload
-    mediaUploadArea.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!e.target.closest('.remove-media-btn')) {
-            mediaInput.click();
-        }
-    });
+    if (mediaUploadArea && mediaInput) {
+        mediaUploadArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!e.target.closest('.remove-media-btn')) {
+                console.log('Clicking media input');
+                mediaInput.click();
+            }
+        });
 
-    mediaInput.addEventListener('change', handleMediaUpload);
+        mediaInput.addEventListener('change', () => {
+            console.log('Media input changed');
+            handleMediaUpload();
+        });
+    }
 
-    document.getElementById('remove-media-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        clearMediaUpload();
-    });
+    const removeMediaBtn = document.getElementById('remove-media-btn');
+    if (removeMediaBtn) {
+        removeMediaBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearMediaUpload();
+        });
+    }
 
     // Contacts upload
-    contactsUploadArea.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!e.target.closest('.remove-file-btn')) {
-            contactsInput.click();
-        }
-    });
+    if (contactsUploadArea && contactsInput) {
+        contactsUploadArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!e.target.closest('.remove-file-btn')) {
+                console.log('Clicking contacts input');
+                contactsInput.click();
+            }
+        });
 
-    contactsInput.addEventListener('change', handleContactsUpload);
+        contactsInput.addEventListener('change', () => {
+            console.log('Contacts input changed');
+            handleContactsUpload();
+        });
+    }
 
-    document.getElementById('remove-contacts-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        clearContactsUpload();
-    });
+    const removeContactsBtn = document.getElementById('remove-contacts-btn');
+    if (removeContactsBtn) {
+        removeContactsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearContactsUpload();
+        });
+    }
 
     // Template selection
-    templateSelect.addEventListener('change', updatePreview);
+    if (templateSelect) {
+        templateSelect.addEventListener('change', updatePreview);
+    }
 
     // Form submission
     form.addEventListener('submit', handleBlastSubmit);
@@ -440,15 +475,27 @@ function clearMediaUpload() {
 
 function handleContactsUpload() {
     const file = document.getElementById('contacts-file').files[0];
-    if (!file) return;
+    if (!file) {
+        console.warn('No file selected');
+        return;
+    }
+
+    console.log('File selected:', file.name);
 
     const selected = document.getElementById('contacts-selected');
     const placeholder = document.querySelector('#contacts-upload-area .upload-placeholder');
     const filename = document.getElementById('contacts-filename');
 
+    if (!selected || !placeholder || !filename) {
+        console.error('Could not find required elements for contacts upload');
+        return;
+    }
+
     placeholder.style.display = 'none';
     selected.style.display = 'flex';
     filename.textContent = file.name;
+    
+    console.log('File display updated:', file.name);
 }
 
 function clearContactsUpload() {
@@ -847,33 +894,23 @@ function closeModal() {
 // ===================================
 // Initialization
 // ===================================
+let disparoPageInitialized = false;
+
+function safeInitDisparoPage() {
+    if (!disparoPageInitialized) {
+        initDisparoPage();
+        disparoPageInitialized = true;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
-    initDisparoPage();
+    safeInitDisparoPage();
     initProfilePage();
     initWABAPage();
 
     // Load initial page
     loadDashboard();
-
-    // Add event delegation for file uploads to ensure they work even after page changes
-    document.addEventListener('click', (e) => {
-        const contactsUploadArea = e.target.closest('#contacts-upload-area');
-        if (contactsUploadArea && !e.target.closest('.remove-file-btn')) {
-            const contactsInput = document.getElementById('contacts-file');
-            if (contactsInput) {
-                contactsInput.click();
-            }
-        }
-
-        const mediaUploadArea = e.target.closest('#media-upload-area');
-        if (mediaUploadArea && !e.target.closest('.remove-media-btn')) {
-            const mediaInput = document.getElementById('media-input');
-            if (mediaInput) {
-                mediaInput.click();
-            }
-        }
-    });
 });
 
 // Add spin animation for loading state
