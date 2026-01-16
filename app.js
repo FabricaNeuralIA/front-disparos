@@ -604,9 +604,9 @@ async function handleBlastSubmit(e) {
     formData.append('template', template);
     formData.append('token', auth.token);
     formData.append('userId', auth.userId);
-    if (mediaFile) {
-        formData.append('media', mediaFile);
-    }
+    // if (mediaFile) {
+    //     formData.append('media', mediaFile);
+    // }
     formData.append('contacts', contactsFile);
 
     try {
