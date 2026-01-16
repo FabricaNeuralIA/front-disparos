@@ -114,13 +114,13 @@ async function loadDashboard() {
 
 function updateDashboardStats() {
     const total = appState.blasts.length;
-    const ongoing = appState.blasts.filter(b => b.status === 'ongoing').length;
-    const completed = appState.blasts.filter(b => b.status === 'completed').length;
-    const totalContacts = appState.blasts.reduce((sum, b) => sum + b.contactCount, 0);
+    const ongoing = appState.blasts.filter(b => b.status === 'Andamento').length;
+    const completed = appState.blasts.filter(b => b.status === 'Finalizado').length;
+    const totalContacts = appState.blasts.reduce((sum, b) => sum + b.tamanho_lista, 0);
 
     document.getElementById('total-blasts').textContent = total;
-    document.getElementById('ongoing-blasts').textContent = ongoing;
-    document.getElementById('completed-blasts').textContent = completed;
+    document.getElementById('ongoing-blasts').textContent = Andamento;
+    document.getElementById('completed-blasts').textContent = Finalizado;
     document.getElementById('total-contacts').textContent = totalContacts.toLocaleString();
 }
 
@@ -140,9 +140,9 @@ function renderBlastsTable() {
 
     tbody.innerHTML = appState.blasts.map(blast => `
         <tr>
-            <td><strong>${blast.campaignName}</strong></td>
-            <td>${blast.startTime}</td>
-            <td>${blast.contactCount.toLocaleString()}</td>
+            <td><strong>${blast.nome_campanha}</strong></td>
+            <td>${blast.data_inicio}</td>
+            <td>${blast.tamanho_lista.toLocaleString()}</td>
             <td>
                 <span class="status-badge status-${blast.status}">
                     ${getStatusText(blast.status)}
@@ -162,9 +162,9 @@ function renderBlastsTable() {
 
 function getStatusText(status) {
     const statusMap = {
-        'ongoing': 'Em Andamento',
-        'completed': 'Concluído',
-        'interrupted': 'Interrompida'
+        'Andamento': 'Andamento',
+        'Finalizado': 'Finalizado',
+        'Interrompido': 'Interrompido'
     };
     return statusMap[status] || status;
 }
@@ -180,7 +180,7 @@ async function viewBlastDetails(id) {
         // });
         // const blastDetails = await response.json();
 
-        alert(`Detalhes do disparo:\n\nCampanha: ${blast.campaignName}\nData/Hora: ${blast.startTime}\nContatos: ${blast.contactCount}\nStatus: ${getStatusText(blast.status)}`);
+        alert(`Detalhes do disparo:\n\nCampanha: ${blast.nome_campanha}\nData/Hora: ${blast.data_inicio}\nContatos: ${blast.tamanho_lista}\nStatus: ${getStatusText(blast.status)}`);
     }
 }
 
