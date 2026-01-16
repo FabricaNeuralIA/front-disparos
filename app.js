@@ -218,7 +218,7 @@ async function loadTemplates() {
 function populateCustomSelect(templates) {
     const optionsContainer = document.getElementById('template-select-options');
     const hiddenSelect = document.getElementById('template-select');
-    
+
     // Clear existing options
     optionsContainer.innerHTML = '';
     while (hiddenSelect.options.length > 0) {
@@ -276,6 +276,13 @@ function initCustomSelect() {
 
     if (!display || !dropdown || !wrapper) return;
 
+    // Prevent duplicate initialization
+    if (wrapper.dataset.initialized === 'true') {
+        console.log('Custom select already initialized, skipping');
+        return;
+    }
+    wrapper.dataset.initialized = 'true';
+
     // Toggle dropdown
     display.addEventListener('click', (e) => {
         try {
@@ -317,25 +324,34 @@ function initCustomSelect() {
 }
 
 
+// Track retry attempts to prevent infinite loops
+let initDisparoRetryCount = 0;
+const MAX_INIT_RETRIES = 10;
+
 function initDisparoPage() {
     const form = document.getElementById('blast-form');
-    const mediaInput = document.getElementById('media-input');
-    const mediaUploadArea = document.getElementById('media-upload-area');
     const contactsInput = document.getElementById('contacts-file');
     const contactsUploadArea = document.getElementById('contacts-upload-area');
     const templateSelect = document.getElementById('template-select');
 
-    if (!form || !mediaUploadArea || !contactsUploadArea) {
-        console.warn('Some form elements not found, retrying...', {
-            form: !!form,
-            mediaUploadArea: !!mediaUploadArea,
-            contactsUploadArea: !!contactsUploadArea
-        });
-        setTimeout(() => initDisparoPage(), 100);
-        return;
+    // Only check for essential elements (media upload is commented out in HTML)
+    if (!form || !contactsUploadArea) {
+        if (initDisparoRetryCount < MAX_INIT_RETRIES) {
+            initDisparoRetryCount++;
+            console.warn(`Some form elements not found, retrying... (${initDisparoRetryCount}/${MAX_INIT_RETRIES})`, {
+                form: !!form,
+                contactsUploadArea: !!contactsUploadArea
+            });
+            setTimeout(() => initDisparoPage(), 100);
+            return;
+        } else {
+            console.error('Failed to initialize disparo page after max retries');
+            return;
+        }
     }
 
     console.log('Initializing disparo page');
+    initDisparoRetryCount = 0; // Reset counter on success
 
     // Load templates on page open
     loadTemplates();
@@ -343,7 +359,9 @@ function initDisparoPage() {
     // Initialize custom select
     initCustomSelect();
 
-    // Media upload
+    // Media upload (only if elements exist - they're currently commented out in HTML)
+    const mediaInput = document.getElementById('media-input');
+    const mediaUploadArea = document.getElementById('media-upload-area');
     if (mediaUploadArea && mediaInput) {
         try {
             mediaUploadArea.addEventListener('click', (e) => {
@@ -378,26 +396,31 @@ function initDisparoPage() {
 
     // Contacts upload
     if (contactsUploadArea && contactsInput) {
-        try {
-            contactsUploadArea.addEventListener('click', (e) => {
-                try {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!e.target.closest('.remove-file-btn')) {
-                        console.log('Clicking contacts input');
-                        contactsInput.click();
-                    }
-                } catch (err) {
-                    console.error('Error in contactsUploadArea click handler', err);
-                }
-            });
+        // Prevent duplicate event listeners
+        if (contactsUploadArea.dataset.initialized !== 'true') {
+            contactsUploadArea.dataset.initialized = 'true';
 
-            contactsInput.addEventListener('change', () => {
-                console.log('Contacts input changed');
-                handleContactsUpload();
-            });
-        } catch (err) {
-            console.error('Error attaching contacts upload handlers', err);
+            try {
+                contactsUploadArea.addEventListener('click', (e) => {
+                    try {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!e.target.closest('.remove-file-btn')) {
+                            console.log('Clicking contacts input');
+                            contactsInput.click();
+                        }
+                    } catch (err) {
+                        console.error('Error in contactsUploadArea click handler', err);
+                    }
+                });
+
+                contactsInput.addEventListener('change', () => {
+                    console.log('Contacts input changed');
+                    handleContactsUpload();
+                });
+            } catch (err) {
+                console.error('Error attaching contacts upload handlers', err);
+            }
         }
     }
 
@@ -414,8 +437,11 @@ function initDisparoPage() {
         templateSelect.addEventListener('change', updatePreview);
     }
 
-    // Form submission
-    form.addEventListener('submit', handleBlastSubmit);
+    // Form submission - prevent duplicate listeners
+    if (form.dataset.initialized !== 'true') {
+        form.dataset.initialized = 'true';
+        form.addEventListener('submit', handleBlastSubmit);
+    }
 
     // Drag and drop for media
     mediaUploadArea.addEventListener('dragover', (e) => {
@@ -519,7 +545,7 @@ function handleContactsUpload() {
     placeholder.style.display = 'none';
     selected.style.display = 'flex';
     filename.textContent = file.name;
-    
+
     console.log('File display updated:', file.name);
 }
 
@@ -833,7 +859,7 @@ function initTogglePasswordButton() {
 
     toggleBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
         } else {
@@ -855,7 +881,7 @@ function showModal(title, message, type = 'success') {
     // Create modal overlay
     const modal = document.createElement('div');
     modal.className = 'custom-modal';
-    
+
     let iconSvg = '';
     if (type === 'success') {
         iconSvg = `
@@ -880,7 +906,7 @@ function showModal(title, message, type = 'success') {
             </svg>
         `;
     }
-    
+
     modal.innerHTML = `
         <div class="modal-overlay"></div>
         <div class="modal-content ${type}">
@@ -922,10 +948,11 @@ function closeModal() {
 let disparoPageInitialized = false;
 
 function safeInitDisparoPage() {
-    if (!disparoPageInitialized) {
-        initDisparoPage();
-        disparoPageInitialized = true;
-    }
+    // Reset and reinitialize to ensure event listeners are properly attached
+    disparoPageInitialized = false;
+    initDisparoRetryCount = 0;
+    initDisparoPage();
+    disparoPageInitialized = true;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
